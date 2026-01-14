@@ -39,7 +39,10 @@ def read_csv(path: str) -> Dataset:
 
 
 def is_float(value: str) -> bool:
-    """Returns True if the string can be converted to float (excluding empty values)."""
+    """
+    Returns True if the string can be converted to float
+    (excluding empty values).
+    """
     if value is None:
         return False
     value = value.strip()
@@ -52,7 +55,9 @@ def is_float(value: str) -> bool:
         return False
 
 
-def detect_numeric_columns(dataset: Dataset, skip_columns: Iterable[str] | None = None) -> List[str]:
+def detect_numeric_columns(
+    dataset: Dataset, skip_columns: Iterable[str] | None = None
+) -> List[str]:
     """
     Detects numeric columns by trying to parse values as float.
 
@@ -64,8 +69,6 @@ def detect_numeric_columns(dataset: Dataset, skip_columns: Iterable[str] | None 
     for col in dataset.header:
         if col in skip:
             continue
-        # We consider a column numeric if all non-empty values
-        # encountered in the rows are convertible to float.
         all_numeric = True
         for row in dataset.rows:
             v = row.get(col, "")
@@ -220,7 +223,9 @@ def describe_numeric_column(values: List[float]) -> Dict[str, float]:
     }
 
 
-def describe_dataset_numeric(dataset: Dataset, skip_columns: Iterable[str] | None = None) -> Dict[str, Dict[str, float]]:
+def describe_dataset_numeric(
+    dataset: Dataset, skip_columns: Iterable[str] | None = None
+) -> Dict[str, Dict[str, float]]:
     """
     Computes describe statistics for all numeric columns
     and returns a mapping {column_name: stats_dict}.
@@ -231,6 +236,3 @@ def describe_dataset_numeric(dataset: Dataset, skip_columns: Iterable[str] | Non
         values = column_values_as_floats(dataset, col)
         result[col] = describe_numeric_column(values)
     return result
-
-
-

@@ -36,25 +36,51 @@ def print_describe_table(stats: Dict[str, Dict[str, float]]) -> None:
         Mean    ...         ...
         ...
     """
-    # Row order as in the subject example
-    row_labels: List[str] = ["Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"]
+    # Ordre des lignes comme dans l'exemple du sujet
+    row_labels: List[str] = [
+        "Count", "Mean", "Std", "Min", "25%", "50%", "75%", "Max"
+    ]
 
-    # Sort columns for deterministic display
+    # Colonnes triées pour un affichage déterministe
     columns = sorted(stats.keys())
 
-    # Header
-    header_cells = [""] + columns
-    print(" | ".join(header_cells))
-    print("-+-".join("-" * len(cell) for cell in header_cells))
+    # Calcul des largeurs de colonnes pour un bel alignement
+    # Largeur de la colonne des labels de lignes
+    row_label_width = max(len(label) for label in row_labels)
 
-    # Lignes
+    # Largeurs pour chaque colonne de feature
+    # (en fonction du nom ET des valeurs formatées)
+    col_widths: Dict[str, int] = {}
+    for col in columns:
+        max_width = len(col)
+        for label in row_labels:
+            if label not in {"25%", "50%", "75%"}:
+                key = label.lower()
+            else:
+                key = label
+            value = stats[col].get(key, float("nan"))
+            cell = format_float(value)
+            if len(cell) > max_width:
+                max_width = len(cell)
+        col_widths[col] = max_width
+
+    # En-tête
+    header = (" " * row_label_width + " | " +
+              " | ".join(f"{col:>{col_widths[col]}}" for col in columns))
+    separator = ("-" * row_label_width + "-+-" +
+                 "-+-".join("-" * col_widths[col] for col in columns))
+    print(header)
+    print(separator)
+
+    # Corps du tableau
     for label in row_labels:
-        row = [label]
         key = label.lower() if label not in {"25%", "50%", "75%"} else label
+        cells = []
         for col in columns:
             value = stats[col].get(key, float("nan"))
-            row.append(format_float(value))
-        print(" | ".join(row))
+            cells.append(f"{format_float(value):>{col_widths[col]}}")
+        line = f"{label:<{row_label_width}} | " + " | ".join(cells)
+        print(line)
 
 
 def main(argv: List[str]) -> int:
@@ -65,7 +91,10 @@ def main(argv: List[str]) -> int:
     csv_path = argv[1]
 
     # Clearly non-numeric columns to ignore
-    skip_cols = ["Index", "Hogwarts House", "First Name", "Last Name", "Birthday", "Best Hand"]
+    skip_cols = [
+        "Index", "Hogwarts House", "First Name",
+        "Last Name", "Birthday", "Best Hand"
+    ]
 
     dataset: Dataset = read_csv(csv_path)
     stats = describe_dataset_numeric(dataset, skip_columns=skip_cols)
@@ -80,5 +109,4 @@ def main(argv: List[str]) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main(sys.argv))
-
 
