@@ -1,0 +1,46 @@
+================================================================================
+EVALUATION REPORT - Multi-Class Logistic Regression
+================================================================================
+
+Overall Accuracy: 0.9900 (99.00%)
+Correct predictions: 396 / 400
+
+--------------------------------------------------------------------------------
+DETAILED METRICS PER HOUSE
+--------------------------------------------------------------------------------
+
+Gryffindor:
+  - Precision: 0.9873
+  - Recall:    1.0000
+  - F1-Score:  0.9936
+  - Support:   78
+
+Hufflepuff:
+  - Precision: 0.9861
+  - Recall:    1.0000
+  - F1-Score:  0.9930
+  - Support:   142
+
+Ravenclaw:
+  - Precision: 0.9912
+  - Recall:    0.9912
+  - F1-Score:  0.9912
+  - Support:   114
+
+Slytherin:
+  - Precision: 1.0000
+  - Recall:    0.9545
+  - F1-Score:  0.9767
+  - Support:   66
+
+--------------------------------------------------------------------------------
+CONFUSION MATRIX
+--------------------------------------------------------------------------------
+
+            Gryffindor  Hufflepuff  Ravenclaw  Slytherin
+Gryffindor          78           0          0          0
+Hufflepuff           0         142          0          0
+Ravenclaw            0           1        113          0
+Slytherin            1           1          1         63
+
+================================================================================

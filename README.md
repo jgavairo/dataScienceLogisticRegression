@@ -25,9 +25,22 @@ python3 logreg_train.py
 python3 logreg_predict.py
 ```
 
-### 4. Check results
+### 4. Evaluate model accuracy
+```bash
+python3 logreg_evaluate.py
+```
+💡 **Précision attendue** : ~99% sur le dataset de test
+
+### 5. (Optional) Cross-validation
+```bash
+python3 logreg_cross_validate.py
+```
+💡 **Note** : Méthode alternative pour tester différents hyperparamètres
+
+### 6. Check results
 ```bash
 head output/houses.csv
+cat output/evaluation_report.txt
 ```
 
 ## 📁 Structure du Projet
@@ -36,17 +49,22 @@ head output/houses.csv
 .
 ├── logreg_train.py          # Script principal d'entraînement
 ├── logreg_predict.py        # Script principal de prédiction
+├── logreg_evaluate.py       # Évaluation sur dataset de test (RECOMMANDÉ)
+├── logreg_cross_validate.py # Validation croisée (alternative)
 ├── setup.py                 # Script de configuration initiale
 ├── README.md                # Ce fichier
 │
 ├── datasets/                # Données brutes
-│   ├── dataset_train.csv    # Dataset d'entraînement
-│   └── dataset_test.csv     # Dataset de test
+│   ├── dataset_train.csv    # Dataset d'entraînement (1600 exemples)
+│   ├── dataset_test.csv     # Dataset de test (400 exemples, sans maisons)
+│   └── dataset_truth.csv    # Vraies maisons pour le test (pour évaluation)
 │
 ├── output/                  # Fichiers générés
 │   ├── weights.csv          # Poids du modèle entraîné
 │   ├── normalization_params.csv  # Paramètres de normalisation
-│   └── houses.csv           # Prédictions finales
+│   ├── houses.csv           # Prédictions finales
+│   ├── evaluation_report.txt     # Rapport d'évaluation (dataset_truth)
+│   └── cross_validation_report.txt  # Rapport de validation croisée
 │
 ├── data_visualization/      # Scripts de visualisation
 │   ├── describe.py
@@ -121,6 +139,57 @@ Vérifie :
 ```bash
 python3 setup.py
 ```
+
+### `logreg_evaluate.py`
+**Évalue la précision du modèle sur le dataset de test**
+
+Fonctionnalités :
+- Compare les prédictions (`output/houses.csv`) avec les vraies valeurs (`datasets/dataset_truth.csv`)
+- Calcule les métriques : Précision globale, Précision par classe, Rappel, F1-Score
+- Affiche la matrice de confusion
+- Sauvegarde un rapport détaillé dans `output/evaluation_report.txt`
+
+**Utilisation :**
+```bash
+python3 logreg_evaluate.py
+```
+
+**Sortie :**
+```
+✨ PRÉCISION GLOBALE : 99.00%
+
+📈 MÉTRIQUES PAR MAISON :
+Maison          Précision    Rappel       F1-Score     Support   
+Gryffindor      98.73%        100.00%      99.36%      78        
+Hufflepuff      98.61%        100.00%      99.30%      142       
+Ravenclaw       99.12%        99.12%      99.12%      114       
+Slytherin       100.00%        95.45%      97.67%      66
+```
+
+**Note :** Nécessite d'avoir exécuté `logreg_predict.py` au préalable.
+
+### `logreg_cross_validate.py`
+**Évalue la précision avec validation croisée (méthode alternative)**
+
+Fonctionnalités :
+- Divise le dataset d'entraînement en train/validation (80/20 par défaut)
+- Entraîne le modèle sur la partie train
+- Évalue sur la partie validation
+- Utile pour tester différents hyperparamètres
+
+**Utilisation :**
+```bash
+# Avec paramètres par défaut
+python3 logreg_cross_validate.py
+
+# Avec paramètres personnalisés
+python3 logreg_cross_validate.py --split 0.75 --lr 0.05 --iter 2000
+```
+
+**Arguments :**
+- `--split` : Ratio du split train/validation (défaut: 0.8)
+- `--lr` : Learning rate (défaut: 0.1)
+- `--iter` : Nombre d'itérations (défaut: 1000)
 
 ## 🧮 Algorithme
 
