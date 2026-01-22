@@ -1,16 +1,107 @@
 import pandas as pd
 import numpy as np
+import sys
 
 
-def load_and_prepare_data(filepath='datasets/dataset_train_filled_normalized.csv'):
+def fill_missing_values(df, selected_features):
     """
-    Load the normalized dataset, extract features, add bias unit, 
+    Fill missing values in selected features with column means.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Input dataframe
+    selected_features : list
+        List of feature names
+        
+    Returns:
+    --------
+    df_filled : pd.DataFrame
+        Dataframe with missing values filled
+    means : dict
+        Dictionary of mean values for each feature
+    """
+    df_filled = df.copy()
+    means = {}
+    
+    print("\n" + "=" * 80)
+    print("FILLING MISSING VALUES")
+    print("=" * 80)
+    
+    for feature in selected_features:
+        if feature in df_filled.columns:
+            missing_count = df_filled[feature].isnull().sum()
+            if missing_count > 0:
+                mean_value = df_filled[feature].mean()
+                df_filled[feature] = df_filled[feature].fillna(mean_value)
+                means[feature] = mean_value
+                print(f"✓ {feature}: Filled {missing_count} missing values with mean = {mean_value:.6f}")
+            else:
+                means[feature] = df_filled[feature].mean()
+    
+    return df_filled, means
+
+
+def normalize_data(df, selected_features, means=None):
+    """
+    Normalize features using z-score normalization.
+    
+    Parameters:
+    -----------
+    df : pd.DataFrame
+        Input dataframe with filled values
+    selected_features : list
+        List of feature names
+    means : dict, optional
+        Pre-computed means (if None, will compute)
+        
+    Returns:
+    --------
+    df_normalized : pd.DataFrame
+        Normalized dataframe
+    params : dict
+        Dictionary containing mean and std for each feature
+    """
+    df_normalized = df.copy()
+    params = {}
+    
+    print("\n" + "=" * 80)
+    print("NORMALIZING DATA (Z-SCORE)")
+    print("=" * 80)
+    
+    for feature in selected_features:
+        if feature in df_normalized.columns:
+            mean_value = df_normalized[feature].mean()
+            std_value = df_normalized[feature].std()
+            
+            params[feature] = {
+                'mean': mean_value,
+                'std': std_value
+            }
+            
+            # Apply z-score normalization
+            df_normalized[feature] = (df_normalized[feature] - mean_value) / std_value
+            print(f"✓ {feature}: mean={mean_value:.6f}, std={std_value:.6f}")
+    
+    return df_normalized, params
+
+
+def load_and_prepare_data(filepath='datasets/dataset_train.csv'):
+    """
+    Load the raw dataset, preprocess it, extract features, add bias unit, 
     and prepare One-vs-All targets.
+    
+    This function performs all preprocessing steps:
+    1. Load raw data
+    2. Fill missing values with means
+    3. Normalize features (z-score)
+    4. Add bias unit
+    5. Prepare One-vs-All targets
     
     Parameters:
     -----------
     filepath : str
-        Path to the normalized training dataset CSV file
+        Path to the raw training dataset CSV file
         
     Returns:
     --------
@@ -22,8 +113,15 @@ def load_and_prepare_data(filepath='datasets/dataset_train_filled_normalized.csv
         List of unique Hogwarts Houses
     feature_names : list
         List of feature names (including 'Bias')
+    normalization_params : dict
+        Dictionary containing mean and std for each feature
     """
-    # Load the dataset
+    print("=" * 80)
+    print("LOADING AND PREPROCESSING DATA")
+    print("=" * 80)
+    print(f"Loading: {filepath}")
+    
+    # Load the raw dataset
     df = pd.read_csv(filepath)
     
     # Define the features to extract
@@ -40,9 +138,28 @@ def load_and_prepare_data(filepath='datasets/dataset_train_filled_normalized.csv
         'Flying'
     ]
     
+    print(f"Original shape: {df.shape}")
+    print(f"Selected features: {len(selected_features)}")
+    
+    # Step 1: Fill missing values
+    df_filled, means = fill_missing_values(df, selected_features)
+    
+    # Step 2: Normalize data
+    df_normalized, normalization_params = normalize_data(df_filled, selected_features, means)
+    
+    # Save normalization parameters for later use in prediction
+    params_df = pd.DataFrame(normalization_params).T
+    params_path = 'output/normalization_params.csv'
+    params_df.to_csv(params_path)
+    print(f"\n✓ Normalization parameters saved to: {params_path}")
+    
     # Extract features (X) and target (y)
-    X = df[selected_features].values  # Convert to numpy array
-    y = df['Hogwarts House'].values
+    X = df_normalized[selected_features].values  # Convert to numpy array
+    y = df_normalized['Hogwarts House'].values
+    
+    print("\n" + "=" * 80)
+    print("ADDING BIAS AND PREPARING TARGETS")
+    print("=" * 80)
     
     # 1. AJOUT DU BIAIS (Bias Unit)
     # Ajouter une colonne de 1 au début de X
@@ -50,6 +167,7 @@ def load_and_prepare_data(filepath='datasets/dataset_train_filled_normalized.csv
     n_samples = X.shape[0]
     bias_column = np.ones((n_samples, 1))  # Colonne de 1
     X = np.hstack((bias_column, X))  # Ajouter la colonne de biais à gauche
+    print(f"✓ Bias unit added (column of ones)")
     
     # Noms des features avec le biais
     feature_names = ['Bias'] + selected_features
@@ -59,11 +177,14 @@ def load_and_prepare_data(filepath='datasets/dataset_train_filled_normalized.csv
     houses = sorted(df['Hogwarts House'].unique())  # Liste des maisons uniques
     y_dict = {}
     
+    print(f"✓ Houses found: {houses}")
+    
     for house in houses:
         # Créer un vecteur binaire : 1 si la maison correspond, 0 sinon
         y_dict[house] = (y == house).astype(int)
+        print(f"  {house}: {np.sum(y_dict[house])} positive samples")
     
-    return X, y_dict, houses, feature_names
+    return X, y_dict, houses, feature_names, normalization_params
 
 
 def sigmoid(z):
@@ -192,7 +313,7 @@ def train_all_houses(X, y_dict, houses, learning_rate=0.01, max_iter=1000):
     return theta_dict
 
 
-def save_weights(theta_dict, houses, feature_names, filepath='weights.csv'):
+def save_weights(theta_dict, houses, feature_names, filepath='output/weights.csv'):
     """
     Sauvegarde les poids optimisés dans un fichier CSV.
     
@@ -226,8 +347,18 @@ def save_weights(theta_dict, houses, feature_names, filepath='weights.csv'):
 
 def main():
     """Main function to load and prepare data for training."""
-    # Load and prepare data
-    X, y_dict, houses, feature_names = load_and_prepare_data()
+    # Parse command line arguments
+    if len(sys.argv) > 1:
+        filepath = sys.argv[1]
+    else:
+        filepath = 'datasets/dataset_train.csv'
+    
+    print("=" * 80)
+    print("LOGISTIC REGRESSION TRAINING - ONE-VS-ALL")
+    print("=" * 80)
+    
+    # Load and prepare data (includes preprocessing)
+    X, y_dict, houses, feature_names, normalization_params = load_and_prepare_data(filepath)
     
     print("=" * 80)
     print("DATASET PREPARATION FOR LOGISTIC REGRESSION")
@@ -300,13 +431,13 @@ def main():
     )
     
     # SAUVEGARDE DES POIDS
-    weights_df = save_weights(theta_dict, houses, feature_names, filepath='weights.csv')
+    weights_df = save_weights(theta_dict, houses, feature_names, filepath='output/weights.csv')
     
     print("\n" + "=" * 80)
     print("TRAINING COMPLETE!")
     print("=" * 80)
     print(f"✓ Trained {len(houses)} binary classifiers")
-    print(f"✓ Weights saved to 'weights.csv'")
+    print(f"✓ Weights saved to 'output/weights.csv'")
     print("\nNext steps:")
     print("  1. Use these weights to make predictions on new data")
     print("  2. Evaluate model performance on test set")

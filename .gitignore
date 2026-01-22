@@ -18,6 +18,33 @@ downloads/
 eggs/
 .eggs/
 lib/
+
+# Generated output files
+output/weights.csv
+output/houses.csv
+output/normalization_params.csv
+
+# Intermediate dataset files
+datasets/dataset_train_filled.csv
+datasets/dataset_train_filled_normalized.csv
+datasets/dataset_train_filled_normalized_params.csv
+datasets/dataset_test_prepared.csv
+
+# Virtual environment
+.venv/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Visualization outputs
+data_visualization/histograms/*.png
+data_visualization/pair_plot/*.png
+data_visualization/scatter_plots/*.png
 lib64/
 parts/
 sdist/
