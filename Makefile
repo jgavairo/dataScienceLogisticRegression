@@ -56,10 +56,12 @@ help:
 
 clean:
 	@echo "Cleaning generated files (reports, images, caches)..."
-	# Remove common report/image files in output
-	@find output -maxdepth 1 -type f \( -name '*.txt' -o -name '*.png' -o -name '*.pdf' -o -name '*.svg' \) -delete || true
-	# Remove generated images in visualization subfolders
-	@find data_visualization/histograms data_visualization/scatter_plots data_visualization/pair_plot -type f \( -name '*.png' -o -name '*.pdf' -o -name '*.svg' \) -delete 2>/dev/null || true
+	# Remove generated files in output/ but keep README.md if present
+	@find output -type f ! -name 'README.md' -delete 2>/dev/null || true
+	# Remove any empty directories left under output
+	@find output -type d -empty -delete 2>/dev/null || true
+	# Remove generated images in both top-level and data_visualization subfolders
+	@find histograms scatter_plots pair_plot data_visualization/histograms data_visualization/scatter_plots data_visualization/pair_plot -type f \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.pdf' -o -iname '*.svg' \) -delete 2>/dev/null || true
 	# Remove python cache directories
 	@find . -type d -name '__pycache__' -prune -exec rm -rf {} + || true
 	@echo "Clean complete."
