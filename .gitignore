@@ -31,6 +31,8 @@ datasets/dataset_train_filled_normalized_params.csv
 datasets/dataset_test_prepared.csv
 
 # Virtual environment
+.env
+.env/
 .venv/
 venv/
 ENV/

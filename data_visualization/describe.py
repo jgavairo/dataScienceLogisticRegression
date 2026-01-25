@@ -13,7 +13,11 @@ as required by the subject.
 from __future__ import annotations
 
 import sys
+import os
 from typing import Dict, List
+
+# Add parent directory to path so we can import src
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.data_utils import Dataset, describe_dataset_numeric, read_csv
 

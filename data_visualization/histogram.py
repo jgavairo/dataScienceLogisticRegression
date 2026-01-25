@@ -2,6 +2,11 @@ import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend for WSL
 import matplotlib.pyplot as plt
 import os
+import sys
+
+# Add parent directory to path so we can import src
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.data_utils import (
     read_csv,
     detect_numeric_columns
@@ -10,8 +15,8 @@ from src.data_utils import (
 
 def plot_histogram():
     # Create the directory if it doesn't exist
-    if not os.path.exists("histograms"):
-        os.makedirs("histograms")
+    if not os.path.exists("plot"):
+        os.makedirs("plot")
 
     dataset = read_csv("datasets/dataset_train.csv")
     houses = ["Gryffindor", "Slytherin", "Hufflepuff", "Ravenclaw"]
@@ -68,8 +73,8 @@ def plot_histogram():
         ax.set_visible(False)
 
     fig.tight_layout()
-    plt.savefig("histograms/histograms.png", dpi=150, bbox_inches="tight")
-    print("Histograms saved to: histograms/histograms.png")
+    plt.savefig("plot/histograms.png", dpi=150, bbox_inches="tight")
+    print("Histograms saved to: plot/histograms.png")
     plt.close()
 
 

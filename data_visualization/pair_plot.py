@@ -1,11 +1,16 @@
 import matplotlib.pyplot as plt
 import os
+import sys
+
+# Add parent directory to path so we can import src
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.data_utils import read_csv, detect_numeric_columns
 
 
 def pair_plot():
-    if not os.path.exists("pair_plot"):
-        os.makedirs("pair_plot")
+    if not os.path.exists("plot"):
+        os.makedirs("plot")
 
     dataset = read_csv("datasets/dataset_train.csv")
     
@@ -62,7 +67,7 @@ def pair_plot():
         bbox_to_anchor=(0.98, 0.98), fontsize=12
     )
     
-    output_file = "pair_plot/pair_plot.png"
+    output_file = "plot/pair_plot.png"
     plt.savefig(output_file, dpi=150)
     print(f"Pair plot successfully saved as {output_file}")
     plt.close()

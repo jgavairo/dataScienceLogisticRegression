@@ -1,13 +1,18 @@
 import matplotlib.pyplot as plt
 import os
+import sys
+
+# Add parent directory to path so we can import src
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 from src.data_utils import read_csv
 
 
 def plot_scatter():
     dataset = read_csv("datasets/dataset_train.csv")
 
-    if not os.path.exists("scatter_plots"):
-        os.makedirs("scatter_plots")
+    if not os.path.exists("plot"):
+        os.makedirs("plot")
 
     feat_x = "Astronomy"
     feat_y = "Defense Against the Dark Arts"
@@ -38,9 +43,8 @@ def plot_scatter():
     plt.ylabel(feat_y)
     plt.legend(loc='best')
 
-    plt.savefig("scatter_plots/astronomy_vs_defense.png")
-    print("The scatter plot has been saved in "
-          "scatter_plots/astronomy_vs_defense.png")
+    plt.savefig("plot/scatter_plot.png")
+    print("The scatter plot has been saved in plot/scatter_plot.png")
     plt.close()
 
 
